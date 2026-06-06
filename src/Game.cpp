@@ -49,12 +49,12 @@ void Game::buildWorld() {
     roomJail       = dungeon.addRoom("🔒 감옥",
         "...돈을 다 잃었다. 게임 오버.");
 
-    // 연결: 집을 허브로
-    dungeon.connectRooms(roomHome, Direction::North, roomMeeting[0], false);
-    dungeon.connectRooms(roomMeeting[0], Direction::South, roomHome, false);
+    // 연결: 집을 허브로 (북: 카지노, 남: 약속 장소, 동: 상점)
+    dungeon.connectRooms(roomHome, Direction::South, roomMeeting[0], false);
+    dungeon.connectRooms(roomMeeting[0], Direction::North, roomHome, false);
 
-    dungeon.connectRooms(roomHome, Direction::East,  roomCasino, true);
-    dungeon.connectRooms(roomHome, Direction::West,  roomShop,   true);
+    dungeon.connectRooms(roomHome, Direction::North, roomCasino, true);
+    dungeon.connectRooms(roomHome, Direction::East,  roomShop,   true);
 
     // 약속 장소들은 집에서만 접근
     // (Stage 해금 시 연결 추가)
@@ -317,8 +317,8 @@ void Game::onStageClear(int stageIndex) {
 
     // 약속 장소 다음 스테이지 연결
     if (currentStage < 4) {
-        dungeon.connectRooms(roomHome, Direction::North, roomMeeting[currentStage], false);
-        dungeon.connectRooms(roomMeeting[currentStage], Direction::South, roomHome, false);
+        dungeon.connectRooms(roomHome, Direction::South, roomMeeting[currentStage], false);
+        dungeon.connectRooms(roomMeeting[currentStage], Direction::North, roomHome, false);
     }
 
     // 보상
