@@ -47,8 +47,9 @@ private:
     void doStatus()     const;
     void doInventory()  const;
     void doMap()        const;
-    void doScores()     const;
     void doSortItems()  const;
+    void doSell(const std::string& itemName);
+    void triggerRandomEvent();
 
     // 전투 내부 헬퍼
     int  calcInitialProb(int jinsangPower) const;

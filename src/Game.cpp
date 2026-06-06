@@ -76,10 +76,7 @@ void Game::buildWorld() {
         shop->addItem(Item("빌딩",      "리셀용 빌딩. 물건 자랑 가능.",        500000, 30, ItemType::Goods));
     }
 
-    // 초기 이벤트 큐
-    eventQueue.enqueue(GameEvent("이웃집 할머니가 용돈을 주셨다.", 0, 5000));
-    eventQueue.enqueue(GameEvent("길에서 천원을 주웠다!", 0, 1000));
-    eventQueue.enqueue(GameEvent("갑자기 택배비가 나갔다...", 0, -3000));
+    // 이벤트는 이동 시 랜덤 발생 (triggerRandomEvent 참조)
 }
 
 // ─────────────────────────────────────────
@@ -522,10 +519,9 @@ void Game::printHelp() const {
     std::cout << "  battle           현재 약속 장소에서 거래 시작\n";
     std::cout << "  casino           슬롯머신 (카지노에서만)\n";
     std::cout << "  inventory        인벤토리 확인\n";
+    std::cout << "  sell <아이템명>  아이템 판매 (구매가의 50%)\n";
     std::cout << "  status           상태 확인\n";
     std::cout << "  map              지도 확인\n";
-    std::cout << "  scores           점수 랭킹\n";
-    std::cout << "  event            이벤트 처리\n";
     std::cout << "  quit             게임 종료\n";
 }
 
@@ -570,6 +566,7 @@ void Game::doMove(Direction direction) {
     }
     moveHistory.push(current);
     player.setCurrentRoomId(next);
+    triggerRandomEvent();
     look();
 }
 
@@ -630,8 +627,60 @@ void Game::doMap() const {
     std::cout << "           +------------------+\n";
 }
 
-void Game::doScores() const {
-    scoreTree.printDescending();
+void Game::triggerRandomEvent() {
+    // 이동 시 40% 확률로 이벤트 발생
+    if (std::rand() % 100 >= 40) return;
+
+    static const GameEvent pool[] = {
+        {"길에서 만원을 주웠다!",               0,  10000},
+        {"이웃집 할머니가 용돈을 주셨다.",       0,   5000},
+        {"알바비가 들어왔다.",                   0,  20000},
+        {"중고나라에서 급처 물건을 팔았다!",     0,  15000},
+        {"친구가 밥을 사줬다.",                  0,   3000},
+        {"갑자기 택배비가 나갔다...",            0,  -3000},
+        {"핸드폰 요금이 나갔다.",                0,  -5000},
+        {"충동구매를 했다...",                   0,  -8000},
+        {"카드값이 나갔다.",                     0, -10000},
+        {"라면을 끓이다 태워먹었다.",            0,  -2000},
+        {"날씨가 맑다. 기분이 좋아졌다.",        0,      0},
+        {"진상의 별점 테러가 달렸다...",         0,      0},
+    };
+    static const int POOL_SIZE = 12;
+
+    const GameEvent& ev = pool[std::rand() % POOL_SIZE];
+    eventQueue.enqueue(ev);
+
+    GameEvent out;
+    if (!eventQueue.dequeue(out)) return;
+
+    std::cout << "\n[이벤트] " << out.description << "\n";
+    if (out.moneyDelta != 0) {
+        player.addMoney(out.moneyDelta);
+        std::cout << "  돈 변화: " << out.moneyDelta
+                  << "원 (현재: " << player.getMoney() << "원)\n";
+    }
+}
+
+void Game::doSell(const std::string& itemName) {
+    Item* item = player.getInventory().findItem(itemName);
+    if (!item) {
+        std::cout << "'" << itemName << "' 아이템이 인벤토리에 없다.\n";
+        return;
+    }
+    int sellPrice  = item->getValue() / 2;
+    ItemType type  = item->getType();
+    int effectVal  = item->getEffectValue();
+
+    if (type == ItemType::Weapon)
+        player.addCombatPower(-effectVal);
+
+    player.getInventory().removeItem(itemName);
+    player.addMoney(sellPrice);
+    std::cout << itemName << " 판매 완료! +" << sellPrice
+              << "원 (현재: " << player.getMoney() << "원)\n";
+    if (type == ItemType::Weapon)
+        std::cout << "  전투력 -" << effectVal
+                  << " (현재: " << player.getCombatPower() << ")\n";
 }
 
 void Game::doSortItems() const {
@@ -743,26 +792,14 @@ void Game::processCommand(const std::string& line) {
         doStatus();
     } else if (cmd == "map") {
         doMap();
-    } else if (cmd == "scores") {
-        doScores();
     } else if (cmd == "sortitems") {
         doSortItems();
-    } else if (cmd == "event") {
-        GameEvent ev;
-        if (!eventQueue.dequeue(ev)) {
-            std::cout << "처리할 이벤트가 없다.\n";
-            return;
-        }
-        std::cout << "📢 이벤트: " << ev.description << "\n";
-        if (ev.moneyDelta != 0) {
-            player.addMoney(ev.moneyDelta);
-            std::cout << "  돈 변화: " << ev.moneyDelta << "원 (현재: "
-                      << player.getMoney() << "원)\n";
-        }
-        if (!player.isAlive()) {
-            std::cout << "💸 돈이 0원! 감옥으로...\n";
-            running = false;
-        }
+    } else if (cmd == "sell") {
+        std::string itemName;
+        std::getline(ss, itemName);
+        while (!itemName.empty() && itemName[0] == ' ') itemName.erase(0, 1);
+        if (itemName.empty()) { std::cout << "사용법: sell <아이템명>\n"; return; }
+        doSell(itemName);
     } else if (cmd == "quit") {
         running = false;
     } else if (cmd.empty()) {
