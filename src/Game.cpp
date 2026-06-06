@@ -127,12 +127,12 @@ int Game::calcInitialProb(int jinsangPower) const {
 bool Game::battleTurn(int& prob, const Jinsang& jinsang) {
     std::cout << "\n현재 거래 확률: " << prob << "%\n";
     std::cout << "행동을 선택하세요:\n";
-    std::cout << "  1. 😤 설득하기       (확률 +10%)\n";
-    std::cout << "  2. 💰 가격 할인      (보유 금액 10% 소모, 확률 +20%)\n";
-    std::cout << "  3. 📸 물건 자랑      (상품 필요, 확률 +15%)\n";
-    std::cout << "  4. 🐾 펫 등장        (펫 필요, 1회만, 확률 +25%)\n";
-    std::cout << "  5. 🍔 음식 대접      (음식 소모, 확률 상승)\n";
-    std::cout << "  6. 🤝 거래 시도      (현재 확률로 판정)\n";
+    std::cout << "  1. 설득하기       (확률 +10%)\n";
+    std::cout << "  2. 가격 할인      (보유 금액 10% 소모, 확률 +20%)\n";
+    std::cout << "  3. 물건 자랑      (상품 필요, 확률 +15%)\n";
+    std::cout << "  4. 펫 등장        (펫 필요, 1회만, 확률 +25%)\n";
+    std::cout << "  5. 음식 대접      (음식 소모, 확률 상승)\n";
+    std::cout << "  6. 거래 시도      (현재 확률로 판정)\n";
 
     std::string input;
     std::cout << "> ";
@@ -265,22 +265,21 @@ void Game::doBattle(int stageIndex) {
 
     // 거래 판정
     if (prob <= 0) {
-        std::cout << "\n❌ 거래 실패! 다음에 다시 도전하자.\n";
+        std::cout << "\n거래 실패! 다음에 다시 도전하자.\n";
         return;
     }
     if (prob >= 100) {
-        std::cout << "\n✅ 확률 " << prob << "%! 거래 성공!\n";
+        std::cout << "\n거래 성공!\n";
         onStageClear(stageIndex);
         return;
     }
 
     int roll = std::rand() % 100 + 1;
-    std::cout << "\n🎲 주사위: " << roll << " (필요: " << prob << " 이하)\n";
     if (roll <= prob) {
-        std::cout << "✅ 거래 성공!\n";
+        std::cout << "\n거래 성공!\n";
         onStageClear(stageIndex);
     } else {
-        std::cout << "❌ 거래 실패! 다음에 다시 도전하자.\n";
+        std::cout << "\n거래 실패! 다음에 다시 도전하자.\n";
     }
 }
 
@@ -325,7 +324,7 @@ void Game::onStageClear(int stageIndex) {
     int rewards[] = { 20000, 60000, 150000, 500000 };
     int reward = rewards[stageIndex];
     player.addMoney(reward);
-    std::cout << "\n🎉 Stage " << (stageIndex + 1) << " 클리어! 보상: "
+    std::cout << "\nStage " << (stageIndex + 1) << " 클리어! 보상: "
               << reward << "원\n";
 
     // 최종 클리어
