@@ -639,6 +639,7 @@ void Game::undoMove() {
     }
     player.setCurrentRoomId(prev);
     std::cout << "이전 장소로 돌아왔다.\n";
+    triggerRandomEvent();
     look();
 }
 
