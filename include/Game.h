@@ -49,6 +49,7 @@ private:
     void doMap()        const;
     void doSortItems()  const;
     void doScores();
+    void doQuest()      const;
     void doSell(const std::string& itemName);
     void triggerRandomEvent();
 

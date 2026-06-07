@@ -522,6 +522,7 @@ void Game::printHelp() const {
     std::cout << "  casino           슬롯머신 (카지노에서만)\n";
     std::cout << "  inventory        인벤토리 확인\n";
     std::cout << "  sell <아이템명>  아이템 판매 (구매가의 50%)\n";
+    std::cout << "  quest            현재 퀘스트 및 해금 조건 확인\n";
     std::cout << "  scores           랭킹 확인 (BST)\n";
     std::cout << "  status           상태 확인\n";
     std::cout << "  map              지도 확인\n";
@@ -686,6 +687,60 @@ void Game::doSell(const std::string& itemName) {
                   << " (현재: " << player.getCombatPower() << ")\n";
 }
 
+void Game::doQuest() const {
+    auto check = [](bool ok) -> const char* { return ok ? "[완료]" : "[  ]  "; };
+    int money = player.getMoney();
+    bool hasGoods  = player.getInventory().hasItemOfType(ItemType::Goods);
+    bool hasWeapon = player.getInventory().hasItemOfType(ItemType::Weapon);
+
+    std::cout << "\n=== 퀘스트 ===\n";
+    std::cout << "현재 보유 금액: " << money << "원\n\n";
+
+    // Stage 1
+    std::cout << "[ Stage 1 ] 동네 진상 처치\n";
+    if (stageCleared[0]) {
+        std::cout << "  [완료] 클리어!\n";
+    } else {
+        std::cout << "  " << check(money >= 30000)  << " 돈 30,000원 이상\n";
+        std::cout << "  " << check(hasGoods)         << " 상품 1개 이상 보유\n";
+        std::cout << "  -> 조건 충족 후 '약속 장소 1'에서 battle\n";
+    }
+
+    std::cout << "\n[ Stage 2 ] 중고나라 진상 처치\n";
+    if (stageCleared[1]) {
+        std::cout << "  [완료] 클리어!\n";
+    } else if (!stageCleared[0]) {
+        std::cout << "  Stage 1 클리어 후 해금\n";
+    } else {
+        std::cout << "  " << check(money >= 100000) << " 돈 100,000원 이상\n";
+        std::cout << "  " << check(hasGoods)         << " 상품 보유\n";
+        std::cout << "  -> 조건 충족 후 '약속 장소 2'에서 battle\n";
+    }
+
+    std::cout << "\n[ Stage 3 ] 당근 진상 처치\n";
+    if (stageCleared[2]) {
+        std::cout << "  [완료] 클리어!\n";
+    } else if (!stageCleared[1]) {
+        std::cout << "  Stage 2 클리어 후 해금\n";
+    } else {
+        std::cout << "  " << check(money >= 300000) << " 돈 300,000원 이상\n";
+        std::cout << "  " << check(hasWeapon)        << " 무기 보유\n";
+        std::cout << "  -> 조건 충족 후 '약속 장소 3'에서 battle\n";
+    }
+
+    std::cout << "\n[ Final ] 리셀계의 황제 처치\n";
+    if (stageCleared[3]) {
+        std::cout << "  [완료] 게임 클리어!\n";
+    } else if (!stageCleared[2]) {
+        std::cout << "  Stage 3 클리어 후 해금\n";
+    } else {
+        std::cout << "  " << check(money >= 1000000)                          << " 돈 1,000,000원 이상\n";
+        std::cout << "  " << check(stageCleared[0] && stageCleared[1] && stageCleared[2]) << " Stage 1~3 전부 클리어\n";
+        std::cout << "  -> 조건 충족 후 '약속 장소 4'에서 battle\n";
+    }
+    std::cout << "\n";
+}
+
 void Game::doScores() {
     scoreTree.removeByName(player.getName());
     scoreTree.insert(ScoreRecord(player.getName(), player.getMoney()));
@@ -801,6 +856,8 @@ void Game::processCommand(const std::string& line) {
         doStatus();
     } else if (cmd == "map") {
         doMap();
+    } else if (cmd == "quest") {
+        doQuest();
     } else if (cmd == "scores") {
         doScores();
     } else if (cmd == "sortitems") {
