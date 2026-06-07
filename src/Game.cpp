@@ -686,6 +686,8 @@ void Game::doSell(const std::string& itemName) {
 
 void Game::doScores() const {
     std::cout << "\n=== BST 랭킹 (높은 점수순) ===\n";
+    std::cout << "  [현재] " << player.getName()
+              << " - " << player.getMoney() << "원\n";
     scoreTree.printDescending();
 }
 
